@@ -1,0 +1,69 @@
+#include<iostream>
+#include<vector>
+#define k 2
+#define MOD 1000000007
+#define matrix vector<vector<long long>>
+
+using namespace std;
+
+matrix multiply(matrix A, matrix B)
+{
+	matrix C(k + 1, vector<long long>(k + 1));
+	for (int i = 1; i <= k; i++)
+	{
+		for (int j = 1; j <= k; j++)
+		{
+			for (int l = 1; l <= k; l++)
+			{
+				C[i][j] = (C[i][j] + A[i][l] * B[l][j])%MOD;
+			}
+		}
+	}
+	return C;
+}
+
+matrix power(matrix A, int p)
+{
+	if (p == 1)return A;
+	matrix X = power(A, p >> 1);
+	if (p & 01)
+	{
+		return multiply(A, power(A, p - 1));
+	}
+
+	return multiply(X, X);
+}
+
+long long Nth_Term(long long n)
+{
+	if (n == 0)return 0;
+	if (n == 1)return 1;
+
+	vector<long long>F(k + 1);//F
+	F[1] = 0;
+	F[2] = 1;
+	//Create a matrix T of k x k
+	matrix T(k + 1, vector<long long>(k + 1));
+	T[1][1] = 0; T[1][2] = 1;
+	T[2][1] = 1; T[2][2] = 1;
+	
+	T = power(T, n - 1);
+
+	long long res = 0;
+	for (int i = 1; i <= k; i++)
+	{
+		res += (T[1][i] * F[i])%MOD;
+	}
+
+	return res;
+}
+
+
+int main()
+{
+	int n;
+	cin >> n;
+	cout <<Nth_Term(n+1) << endl;
+
+	return 0;
+}
