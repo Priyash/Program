@@ -1,0 +1,337 @@
+#include<iostream>
+#include<cstdio>
+#include<vector>
+#include<utility>
+using namespace std;
+
+
+
+struct Node
+{
+	int data;
+	Node* next;
+	Node(int data, Node* next) :data(data), next(next){};
+};
+
+
+
+class Vector
+{
+	Node* root=NULL;
+	void add_front(Node** front, int data);
+	void add_end(Node** front, int data);
+	void add_after(Node** front,int dt, int data);
+	void show_front(Node** front);
+	void delete_front(Node** front, int data);
+	pair<Node*, Node*>findFirstandLastNode(Node** front);
+	int Max(Node** front);
+	int Min(Node** front);
+	int size_linked_list(Node** front);
+	void swap(Node** front, int s,int d);
+	void Reverse(Node** front);
+public:
+	Vector(){};
+	void add_front(int data);
+	void add_End(int data);
+	void add_after(int dt,int data);
+	pair<Node*, Node*>findFirstandLastNode();
+	void remove(int data);
+	void swap(int s, int d);
+	void show();
+	int max();
+	int min();
+	int size();
+	void Reverse();
+	int Compare(Node* head);
+	Node* getRoot(){ return root; }
+};
+
+void Vector::add_front(Node** front,int data)
+{
+	Node* new_Node = new Node(data, NULL);
+	Node* cur = *front;
+	if (cur == NULL)
+	{
+		cur = new_Node;
+		*front = new_Node;
+	}
+	else
+	{
+		new_Node->next = *front;
+		*front = new_Node;
+	}
+
+}
+
+void Vector::add_end(Node** front, int data)
+{
+	Node* new_node = new Node(data, NULL);
+	Node* cur = *front;
+	if (cur == NULL)
+	{
+		cur = new_node;
+		*front = new_node;
+	}
+	else
+	{
+		while (cur->next != NULL)
+		{
+			cur = cur->next;
+		}
+		cur->next = new_node;
+	}
+}
+
+void Vector::add_End(int data)
+{
+	add_end(&root, data);
+}
+
+void Vector::delete_front(Node** front,int data)
+{
+	Node* cur = *front;
+	Node* prev;
+	while (cur&&cur->data != data)
+	{
+		prev = cur;
+		cur = cur->next;
+	}
+	if (cur == *front)(*front) = (*front)->next;
+	else
+		prev->next = cur->next;
+
+	delete cur;
+}
+
+
+void Vector::add_after(Node** front,int dt, int data)
+{
+	Node* cur = *front;
+	Node* after;
+	Node* new_node = new Node(data, NULL);
+	if (cur == NULL)
+	{
+		cur = new_node;
+		*front = new_node;
+	}
+	else
+	{
+		while (cur->data != dt)
+		{
+			cur = cur->next;
+		}
+		after = cur->next;
+
+		cur->next = new_node;
+		new_node->next = after;
+	}
+}
+
+void Vector::add_after(int dt,int data)
+{
+	add_after(&root,dt, data);
+}
+
+void Vector::remove(int data)
+{
+	delete_front(&root, data);
+}
+
+int Vector::size_linked_list(Node** front)
+{
+	Node* cur = *front;
+	int counter = 0;
+	while (cur)
+	{
+		counter++;
+		cur = cur->next;
+	}
+	
+	return counter;
+}
+
+int Vector::size()
+{
+	int count = size_linked_list(&root);
+	return count;
+}
+
+void Vector::show_front(Node** front)
+{
+	Node* cur = *front;
+	while (cur!=NULL)
+	{
+		cout << cur->data<< " ";
+		cur = cur->next;
+	}
+}
+
+void Vector::show()
+{
+	show_front(&root);
+}
+
+void Vector::add_front(int data)
+{
+	add_front(&root, data);
+}
+
+int Vector::Max(Node** front)
+{
+	Node* cur = *front;
+	int m=0;
+	while (cur)
+	{
+		if (m < cur->data)
+		{
+			m = cur->data;
+		}
+		cur = cur->next;
+	}
+
+	return m;
+}
+
+int Vector::max()
+{
+	int m = Max(&root);
+	return m;
+}
+
+
+
+int Vector::Min(Node** front)
+{
+	Node* cur = *front;
+	int m;
+	m = 100000000000000;
+	while (cur)
+	{
+		if (m > cur->data)
+		{
+			m = cur->data;
+		}
+		cur = cur->next;
+	}
+
+	return m;
+}
+
+int Vector::min()
+{
+	int m = Min(&root);
+	return m;
+}
+
+
+pair<Node*, Node*>Vector::findFirstandLastNode(Node** front)
+{
+	Node* cur = *front;
+	Node* last = NULL;
+	if (cur == NULL)
+	{
+		cout << "List Empty" << endl;
+	}
+	else
+	{
+		while (cur->next != NULL)
+		{
+			cur = cur->next;
+		}
+	}
+	last = cur;
+
+	return pair<Node*, Node*>(*front, last);
+}
+
+pair<Node*, Node*>Vector::findFirstandLastNode()
+{
+	pair<Node*,Node*>p=findFirstandLastNode(&root);
+	return p;
+}
+
+void Vector::swap(Node** front,int s,int d)
+{
+	Node* cur = *front;
+	Node* cur2 = *front;
+	int data;
+	while (cur->data!= s)
+	{
+		cur = cur->next;
+	}
+	while (cur2->data!=d)
+	{
+		cur2 = cur2->next;
+	}
+	data = cur->data;
+	cur->data = cur2->data;
+	cur2->data = data;
+}
+
+void Vector::swap(int s, int d)
+{
+	swap(&root, s, d);
+}
+
+void Vector::Reverse(Node** front)
+{
+	Node* cur = *front;
+	Node* prev = NULL;
+	Node* next;
+	if (cur == NULL)
+	{
+		cout << "List is Empty" << endl;
+	}
+	else
+	{
+		while (cur!= NULL)
+		{                        
+			next = cur->next;
+			cur->next = prev;
+			prev = cur;
+			cur = next;
+		}
+		*front = prev;	
+	}
+}
+
+
+void Vector::Reverse()
+{
+	Reverse(&root);
+}
+
+int Vector::Compare(Node* head)
+{
+	Node* cur = root;
+	Node* cur2 = head;
+	while (1)
+	{
+		if (cur == NULL&&cur2 == NULL)return 1;
+	    if (cur != NULL&&cur2 == NULL)return 0;
+		if (cur == NULL&&cur2 != NULL)return 0;
+		if (cur->data != cur2->data)return 0;
+
+		cur = cur->next;
+		cur2 = cur2->next;
+	}
+}
+
+
+int main()
+{
+	Vector* v = new Vector();
+	v->add_End(10);
+	v->add_End(20);
+	v->add_End(30);
+	v->add_End(40);
+	
+	Vector* a = new Vector();
+	a->add_End(10);
+	a->add_End(20);
+	a->add_End(30);
+	a->add_End(40);
+
+
+	return 0;
+}
