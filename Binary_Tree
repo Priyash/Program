@@ -1,0 +1,235 @@
+#include<iostream>
+#include<algorithm>
+#include<string>
+#include<vector>
+
+using namespace std;
+
+template<typename Elem>
+struct Node
+{
+	Elem data;
+	Node<Elem>*left;
+	Node<Elem>*right;
+	Node<Elem>*parent;
+	Node(Elem data, Node<Elem>* left, Node<Elem>* right,Node<Elem>*parent)
+	{
+		this->data = data;
+		this->left = left;
+		this->right = right;
+		this->parent = parent;
+	}
+};
+
+template<typename Elem>
+class Binary_Tree
+{
+	Node<Elem>*root=NULL;
+	vector<Node<Elem>*>leaf_nodes;
+	void Insert(Node<Elem>**, Elem data, Node<Elem>* parent);
+	void Print_Inorder(Node<Elem>*);
+	int Count_LeafNodes(Node<Elem>* n);
+	Node<Elem>* Search_1(Node<Elem>*, Elem data);
+	void findLeaf(Node<Elem>* n);
+	void Remove(Node<Elem>*, Elem data);
+	Node<Elem>* getRightSubTreeMin(Node<Elem>*);
+	
+
+public:
+	Binary_Tree(Elem data)
+	{
+		root = new Node<Elem>(data, NULL, NULL,NULL);
+	}
+
+	void Insert(Elem data){ Insert(&root, data,NULL); }
+	void Print_Inorder(){ Print_Inorder(root); }
+	void findLeaf(){ findLeaf(root); }
+	int Count_Leaf_Nodes(){ return Count_LeafNodes(root); }
+	Node<Elem>* Search_1(Elem data){ return Search_1(root, data); }
+	vector<Node<Elem>*> getLeafNodes(){ return leaf_nodes; }
+	bool isLeafNode(Elem data, vector<Node<Elem>*>);
+	void Remove(Elem data){ Remove(root, data); }
+	bool isEmpty(){ return root == NULL; }
+
+	Node<Elem>* ArrayToBST(Elem* data, Elem l, Elem h,Node<Elem>*);
+	void ArrayToBSTPrint(Node<Elem>*);
+};
+
+template<typename Elem>
+void Binary_Tree<Elem>::ArrayToBSTPrint(Node<Elem>* n)
+{
+	if (n == NULL)return;
+	
+		ArrayToBSTPrint(n->left);
+		cout << n->data << endl;
+		ArrayToBSTPrint(n->right);
+	
+}
+
+template<typename Elem>
+Node<Elem>* Binary_Tree<Elem>::ArrayToBST(Elem *data, Elem l, Elem h,Node<Elem>*parent)
+{
+	
+	if (l > h)return NULL;
+	Elem mid = (l + h) / 2;
+	Node<Elem>*t = new Node<Elem>(data[mid], NULL, NULL, parent);
+	t->left = ArrayToBST(data, l, mid - 1,t);
+	t->right = ArrayToBST(data, mid + 1, h,t);
+	return t;
+}
+
+
+template<typename Elem>
+Node<Elem>* Binary_Tree<Elem>::getRightSubTreeMin(Node<Elem>* n)
+{
+	if (n == NULL)return NULL;
+	if (n->left == NULL&&n->right == NULL) return n;
+	else
+	{
+		return getRightSubTreeMin(n->left);
+	}
+
+}
+
+template<typename Elem>
+void Binary_Tree<Elem>::Remove(Node<Elem>* n, Elem data)
+{
+	if (n->data==data&&n->left == NULL&&n->right == NULL)
+	{
+		n->data = 0;
+		n = NULL;
+		return;
+	}
+	if (n->data==data&&n->left != NULL&&n->right == NULL)
+	{
+		n->parent->left = n->left;
+		n->data = 0;
+		n = NULL;
+		return;
+	}
+	if (n->data==data&&n->left == NULL&&n->right != NULL)
+	{
+		n->parent->right = n->right;
+		n->data = 0;
+		n = NULL;
+		return;
+	}
+	if (n->data==data&&n->left!=NULL&&n->right!=NULL)
+	{
+		Node<Elem>* temp = getRightSubTreeMin(n->left);
+		n->data = temp->data;
+		Remove(temp, temp->data);
+		return;
+	}
+
+	if (data < n->data)
+	{
+		return Remove(n->left, data);
+	}
+	else
+		return Remove(n->right, data);
+}
+
+
+template<typename Elem>
+Node<Elem>* Binary_Tree<Elem>::Search_1(Node<Elem>* n,Elem data)
+{
+	if (n == NULL) return NULL;
+
+	if (n->data == data) return n;
+	else
+	{
+		if (data < n->data)
+			return Search_1(n->left, data);
+		else
+			return Search_1(n->right, data);
+	}
+
+}
+
+
+
+template<typename Elem>
+int Binary_Tree<Elem>::Count_LeafNodes(Node<Elem>* n)
+{
+	if (n == NULL)return 0;
+	if (n->left == NULL&&n->right == NULL)return 1;
+	else
+	{
+		return Count_LeafNodes(n->left) + Count_LeafNodes(n->right);
+	}
+}
+
+template<typename Elem>
+void Binary_Tree<Elem>::findLeaf(Node<Elem>* n)
+{
+	if (n == NULL)return;
+	if (n->left==NULL&&n->right==NULL)
+	{
+		leaf_nodes.push_back(n);
+	}
+	else
+	{
+		findLeaf(n->left);
+		findLeaf(n->right);
+	}
+}
+
+template<typename Elem>
+void Binary_Tree<Elem>::Print_Inorder(Node<Elem>* n)
+{
+	if (n == NULL)return;
+
+	Print_Inorder(n->left);
+	cout << n->data << endl;
+	Print_Inorder(n->right);
+}
+
+
+template<typename Elem>
+void Binary_Tree<Elem>::Insert(Node<Elem>** n,Elem data,Node<Elem>* parent)
+{
+	Node<Elem>*temp=NULL;
+	if (*n == NULL)
+	{
+		temp = new Node<Elem>(data, NULL, NULL,parent);
+		*n = temp;
+		return;
+	}
+	else
+	{
+		if (data < (*n)->data)
+		{
+			Insert(&(*n)->left,data,*n);
+		}
+		else
+		{
+			Insert(&(*n)->right,data,*n);
+		}
+	}
+}
+
+template<typename Elem>
+bool Binary_Tree<Elem>::isLeafNode(Elem data,vector<Node<Elem>*> n)
+{
+	for (auto i : n)
+	{
+		if (i->data == data)
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
+int main()
+{
+
+	Binary_Tree<int>*b = new Binary_Tree<int>(5);
+	b->Insert(4);
+	b->Insert(10);
+	b->Search_1(4)->parent->data = 6;
+	b->Print_Inorder();
+	return 0;
+}
