@@ -1,0 +1,341 @@
+#include<iostream>
+#include<cstdio>
+#include<math.h>
+#include<algorithm>
+#include<queue>
+#include<vector>
+#include<utility>
+#include<set>
+#include<random>
+#include<string>
+using namespace std;
+
+
+
+class Board
+{
+	vector<vector<int>>board;
+	int r, c;
+	Board* parent;
+	int f, g, h;
+	string tag;
+public:
+	Board(vector<vector<int>>board, int r, int c, Board* parent, string tag)
+	{
+		this->board = board;
+		this->r = r;
+		this->c = c;
+		this->parent = parent;
+		this->tag = tag;
+		f = g = h = 0;
+	}
+
+
+	vector<vector<int>> getBoard(){ return board; }
+
+	pair<int, int>FindBlank();
+	string getDirection(){ return tag; }
+	void show_direction(){ cout << getDirection() << endl; }
+	Board* getParent() { return parent; }
+
+	int Compare(Board* goal);
+
+	int getRow(){ return r; }
+	int getCol(){ return c; }
+
+	bool isSafe(int i, int j);
+	void PrintBoard();
+
+	vector<vector<int>> LeftSwap(vector<vector<int>>grid);
+	vector<vector<int>> RightSwap(vector<vector<int>>grid);
+	vector<vector<int>> UpSwap(vector<vector<int>>grid);
+	vector<vector<int>> DownSwap(vector<vector<int>>grid);
+
+	vector<Board*>Generate_Children();
+
+	//A star attribute
+	void setG(int G){ G += 1; g = G; }
+	int getG(){ return g; }
+
+	void setF(int f){ this->f = f; }
+	int getF(){ return f; }
+
+	void setH(int h){ this->h = h; }
+	int getH(){ return h; }
+
+	void Compute();
+	int Heuristic_Estimate(Board* goal);
+	int Heuristic_Estimate2(Board* goal);
+	void Max_Heuristic(Board* goal);
+
+};
+
+void Board::Compute()
+{
+	int f = getG() + getH();
+	setF(f);
+}
+
+bool Board::isSafe(int i, int j)
+{
+	if (i<0 || i >= getRow() || j<0 || j >= getCol())
+	{
+		return false;
+	}
+	else return true;
+}
+
+vector<vector<int>> Board::LeftSwap(vector<vector<int>>grid)
+{
+	pair<int, int>p = FindBlank();
+	if (isSafe(p.first, p.second - 1))
+	{
+		grid[p.first][p.second] = grid[p.first][p.second - 1];
+		grid[p.first][p.second - 1] = 0;
+
+		return grid;
+	}
+
+	return grid;
+}
+
+vector<vector<int>> Board::RightSwap(vector<vector<int>>grid)
+{
+	pair<int, int>p = FindBlank();
+	if (isSafe(p.first, p.second + 1))
+	{
+		grid[p.first][p.second] = grid[p.first][p.second + 1];
+		grid[p.first][p.second + 1] = 0;
+
+		return grid;
+	}
+
+	return grid;
+}
+
+vector<vector<int>> Board::UpSwap(vector<vector<int>>grid)
+{
+	pair<int, int>p = FindBlank();
+	if (isSafe(p.first - 1, p.second))
+	{
+		grid[p.first][p.second] = grid[p.first - 1][p.second];
+		grid[p.first - 1][p.second] = 0;
+		return grid;
+	}
+
+	return grid;
+}
+
+vector<vector<int>> Board::DownSwap(vector<vector<int>>grid)
+{
+	pair<int, int>p = FindBlank();
+	if (isSafe(p.first + 1, p.second))
+	{
+		grid[p.first][p.second] = grid[p.first + 1][p.second];
+		grid[p.first + 1][p.second] = 0;
+
+		return grid;
+	}
+	return grid;
+}
+
+vector<Board*> Board::Generate_Children()
+{
+	vector<Board*>list;//container of set of children
+
+	vector<vector<int>>left;//Board;
+	vector<vector<int>>right;
+	vector<vector<int>>up;
+	vector<vector<int>>down;
+
+	left = LeftSwap(getBoard());
+	right = RightSwap(getBoard());
+	up = UpSwap(getBoard());
+	down = DownSwap(getBoard());
+
+	if (left != getBoard())
+	{
+		list.push_back(new Board(left, getRow(), getCol(), this, "LEFT"));
+	}
+	if (right != getBoard())
+	{
+		list.push_back(new Board(right, getRow(), getCol(), this, "RIGHT"));
+	}
+	if (up != getBoard())
+	{
+		list.push_back(new Board(up, getRow(), getCol(), this, "UP"));
+	}
+	if (down != getBoard())
+	{
+		list.push_back(new Board(down, getRow(), getCol(), this, "DOWN"));
+	}
+	return list;
+}
+
+
+int Board::Heuristic_Estimate(Board* goal)
+{
+
+	vector<vector<int>>g = goal->getBoard();
+	int dx, dy;
+	int distance = 0;
+	int value;
+	int sum = 0;
+	for (int i = 0; i < getRow(); i++)
+	{
+		for (int j = 0; j < getCol(); j++)
+		{
+			value = board[i][j];
+			if (value == 0)continue;
+			dx = abs(value / getRow() - i);
+			dy = abs(value%getCol() - j);
+			distance += dx + dy;
+
+		}
+	}
+	return distance;
+
+}
+
+
+int Board::Heuristic_Estimate2(Board* goal)
+{
+	vector<vector<int>>g = goal->getBoard();
+	int sum = 0;
+	for (int i = 0; i < getRow(); i++)
+	{
+		for (int j = 0; j < getCol(); j++)
+		{
+			if (g[i][j] == 0)continue;
+			else if (g[i][j] != board[i][j])sum += 1;
+		}
+	}
+
+	return sum;
+}
+
+void Board::Max_Heuristic(Board* goal)
+{
+	int h1 = Heuristic_Estimate(goal);
+	int h2 = Heuristic_Estimate2(goal);
+	setH(h1);
+}
+
+
+
+pair<int, int>Board::FindBlank()
+{
+	int flag = 0;
+	for (int i = 0; i < getRow(); i++)
+	{
+		for (int j = 0; j < getCol(); j++)
+		{
+			if (board[i][j] == 0) return pair<int, int>(i, j);
+
+		}
+	}
+	return pair<int, int>(-1, -1);
+}
+
+void Board::PrintBoard()
+{
+	cout << endl;
+	for (int i = 0; i < getRow(); i++)
+	{
+		for (int j = 0; j < getCol(); j++)
+		{
+			cout << board[i][j] << " ";
+		}
+		cout << endl;
+	}
+}
+
+
+vector<Board*>map;
+int counter = 0;
+void A_Star(Board* Start, Board* goal)
+{
+	vector<Board*>open_list;
+	vector<Board*>closed_list;
+	open_list.push_back(Start);
+
+	push_heap(open_list.begin(), open_list.end(), [=](Board* n1, Board* n2)->bool{return n1->getF() > n2->getF(); });
+	while (!open_list.empty())
+	{
+		make_heap(open_list.begin(), open_list.end(), [=](Board* n1, Board* n2)->bool{return n1->getF() > n2->getF(); });
+		Board* current = open_list.front();
+		pop_heap(open_list.begin(), open_list.end(), [=](Board* n1, Board* n2)->bool{return n1->getF() > n2->getF(); });
+		open_list.pop_back();
+		closed_list.push_back(current);
+		map.push_back(current);
+		if (current->getBoard() == goal->getBoard())return;
+		vector<Board*>children = current->Generate_Children();
+		for (vector<Board*>::iterator itr = children.begin(); itr != children.end(); ++itr)
+		{
+			Board* adj = *itr;
+			if (find_if(closed_list.begin(), closed_list.end(), [adj](Board* n)->bool{return adj->getBoard() == n->getBoard(); }) != closed_list.end())continue;
+			vector<Board*>::iterator itr2;
+			
+				adj->setG(current->getG());
+				adj->Max_Heuristic(goal);
+				adj->Compute();
+				open_list.push_back(adj);
+				push_heap(open_list.begin(), open_list.end(), [=](Board* n1, Board* n2)->bool{return n1->getF() > n2->getF(); });
+				make_heap(open_list.begin(), open_list.end(), [=](Board* n1, Board* n2)->bool{return n1->getF() > n2->getF(); });
+			
+			
+		}
+
+	}
+
+}
+
+
+vector<Board*>path;
+void Find(Board* start, Board* goal)
+{
+	path.push_back(goal);
+	if (goal->getBoard() == start->getBoard())return;
+	Find(start, goal->getParent());
+
+}
+
+void Find_Path(Board* start, Board* goal)
+{
+	vector<Board*>::iterator itr = find_if(map.begin(), map.end(), [goal](Board* n){return goal->getBoard() == n->getBoard(); });
+	Find(start, *itr);
+}
+
+int main()
+{
+
+	int r = 3; int c = 3, index = 0, n = 0;
+	cin >> n;
+	r = n;
+	c = n;
+	vector<vector<int>>grid(r, vector<int>(c));
+	vector<vector<int>>goal(r, vector<int>(c));
+
+
+	for (int i = 0; i<r; i++)
+	{
+		for (int j = 0; j < c; j++)
+		{
+			cin >> grid[i][j];
+			goal[i][j] = index++;
+		}
+	}
+
+
+	A_Star(new Board(grid, r, c, NULL, ""), new Board(goal, r, c, NULL, ""));
+	Find_Path(new Board(grid, r, c, NULL, ""), new Board(goal, r, c, NULL, ""));
+
+	reverse(path.begin(), path.end());
+	cout << path.size() - 1;
+	for (auto i : path)
+	{
+		i->show_direction();
+	}
+
+	return 0;
+}
