@@ -1,0 +1,51 @@
+#include<iostream>
+#include<cstdio>
+#include<string.h>
+#include<stdlib.h>
+using namespace std;
+
+int max(int a, int b){ return a > b ? a : b; }
+
+int LCS(char* S, char* T, int n, int m)
+{
+	int** grid;
+	grid = new int*[n+1];
+	for (int i = 0; i < n+1; i++)
+	{
+		grid[i] = new int[m+1];
+	}
+
+	for (int i = 0; i <= n; i++)
+	{
+		for (int j = 0; j <= m; j++)
+		{
+			if (i == 0 || j == 0)
+				grid[i][j] = 0;
+			else if (S[i - 1] == T[j - 1])
+			{
+				grid[i][j] = grid[i - 1][j - 1] + 1;
+			}
+			else
+			{
+				grid[i][j] = max(grid[i][j - 1], grid[i - 1][j]);
+			}
+		}
+	}
+
+	return grid[n][m];
+}
+
+
+int main()
+{
+	char S[100];
+	char T[100];
+	cin >> S >> T;
+	int n = strlen(S);
+	int m = strlen(T);
+	int res=LCS(S, T, n, m);
+
+	cout << res << endl;
+
+	return 0;
+}
