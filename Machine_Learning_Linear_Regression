@@ -1,0 +1,141 @@
+#include<iostream>
+#include<cstdio>
+#include<fstream>
+#include<algorithm>
+#include<math.h>
+#include<vector>
+#include<string>
+#include<map>
+#include<utility>
+#include<sstream>
+#include<iomanip>
+
+using namespace std;
+
+class CSVLoader
+{
+	ifstream reader;
+	int counter = 0;
+	int c=0;
+	string file;
+	vector<string>v;
+	vector<string>label;
+	string** mat;
+public:
+	CSVLoader(string file)
+	{
+		ifstream read;
+		string l;
+		this->file = file;
+	}
+
+	void Load();
+	int Find_Column_Label(string str);
+
+	int getRow(){ return counter; }
+	vector<string>getData(){ return v; }
+	int getCol(){ return c; }
+
+	string** loadData();
+};
+
+void CSVLoader::Load()
+{
+	string line;
+	
+	if (reader.bad())
+	{
+		cout << "Couldn't open file" << endl;
+	}
+	else
+	{
+		reader.open(file, ios::in);
+		string line;
+		while (getline(reader, line))
+		{
+			stringstream ss(line);
+			string str;
+			c = 0;
+			while (getline(ss, str, ','))
+			{
+				v.push_back(str);
+				c++;
+			}
+			
+			counter++;
+		}
+	}
+}
+
+int CSVLoader::Find_Column_Label(string str)
+{
+	auto itr = find_if(v.begin(), v.end(), [=](string s){return s == str; });
+	int dist = distance(v.begin(),itr);
+	return dist;
+}
+
+
+string** CSVLoader::loadData()
+{
+	mat = new string*[getRow()];
+	for (int i = 0; i < getRow(); i++)
+	{
+		mat[i] = new string[getCol()];
+	}
+
+
+	int index = 0;
+
+
+	for (int i = 0; i < getRow(); i++)
+	{
+		for (int j = 0; j < getCol(); j++)
+		{
+			mat[i][j] = v[index];
+			index++;
+		}
+	}
+
+	return mat;
+}
+
+
+int main()
+{
+
+	CSVLoader* file = new CSVLoader("F:/Documents/data.csv");
+	file->Load();
+	cout << file->getRow() << endl;
+	cout << file->getCol() << endl;
+	string **mat = file->loadData();
+	map<float, float>mp;
+	int d1 = file->Find_Column_Label("Price");
+	int d2 = file->Find_Column_Label("Size");
+	for (int i = 0; i < file->getRow()-1; i++)
+	{
+		
+		mp.insert(pair<float, float>(stof(mat[i + 1][d1]), stof(mat[i + 1][d2])));
+	}
+
+	//machine learning stuff
+	float alpha = 0.00002f;
+	float theta0 = 0.0f, theta1 = 0.0f;
+	float temp0 = 0,temp1=0;
+	int m = file->getRow();
+	for (int j = 0; j <20;j++)
+	{
+		for (auto i : mp)
+		{
+			temp0 += ((theta0 + (theta1*i.first)) - i.second);
+			temp1 += ((theta0 + (theta1*i.first)) - i.second)*i.first;
+			theta0 = theta0 - ((alpha / m) * temp0);
+			theta1 = theta1 - ((alpha / m) * temp1);
+		}
+		
+	}
+	cout<< theta0 << " " << theta1 << endl;
+	cout<<6.05*theta1+theta0 << endl; //ans :7.94
+ 
+	
+	return 0;
+}
