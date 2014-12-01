@@ -1,0 +1,40 @@
+#include<iostream>
+#include<string>
+
+using namespace std;
+
+bool isDigit(char ch)
+{
+	if (ch >= '0'&&ch <= '9')
+	{
+		return true;
+	}
+	return false;
+}
+
+//Algorithm is to extract a numeric strings from a string and sum it up.
+
+int main()
+{
+	string s = "abc1245d6e2";
+	int sum = 0;
+	int num = 0;
+	for (int i = 0; i < s.length(); i++)
+	{
+		if (isDigit(s[i]))
+		{
+			while (isDigit(s[i]))
+			{
+				num = num * 10 + (s[i] - '0');
+				i++;
+			}
+			sum += num;
+			num = 0;
+		}
+	}
+
+	cout << sum << endl;
+
+
+	return 0;
+}
