@@ -1,0 +1,78 @@
+#include<iostream>
+#include<cstdio>
+#include<algorithm>
+#include<vector>
+#include<queue>
+#include<stack>
+#include<string>
+
+using namespace std;
+
+
+int n, m;
+vector<string>grid;
+
+class Node
+{
+	int x;
+	int y;
+public:
+	Node(int x, int y) :x(x), y(y){}
+	int getX(){ return x; }
+	int getY(){ return y; }
+	
+};
+
+
+void Search(Node* s,vector<vector<int>>&cost,int changes,int n,int m, int steps,int K)
+{
+	int i = s->getX();
+	int j = s->getY();
+	if (i >= 0 && i < n&&j >= 0 && j < m&&steps <= K&&changes < cost[i][j])
+	{
+		cost[i][j] = changes;
+		Search(new Node(i - 1, j), cost, changes + (grid[i][j] != 'U'), n, m, steps + 1, K);
+		Search(new Node(i + 1, j), cost, changes + (grid[i][j] != 'D'), n, m,steps + 1, K);
+		Search(new Node(i, j - 1), cost, changes + (grid[i][j] != 'L'), n, m,steps + 1, K);
+		Search(new Node(i, j + 1), cost, changes + (grid[i][j] != 'R'), n, m,steps + 1, K);
+	}
+
+}
+
+
+int main()
+{
+	int k, c = 0;
+	int MAX = 1000000;
+	Node* t;
+	cin >> n >> m >> k;
+	vector<vector<int>>cost(n, vector<int>(m, MAX));
+	Node* s = new Node(0, 0);
+
+	for (int i = 0; i < n; i++)
+	{
+		string s;
+		cin >> s;
+		grid.push_back(s);
+
+	}
+	for (int i = 0; i < n; i++)
+	{
+		for (int j = 0; j < m; j++)
+		{
+			if (grid[i][j] == '*')
+			{
+				t = new Node(i, j);
+			}
+
+		}
+	}
+	Search(s,cost,0,n,m,0,k);
+	if (cost[t->getX()][t->getY()]>k)
+	{
+		cout << "-1" << endl;
+	}
+	else
+	cout << cost[t->getX()][t->getY()] << endl;
+	return 0;
+}
