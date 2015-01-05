@@ -1,0 +1,172 @@
+#include<iostream>
+#include<cstdio>
+#include<math.h>
+#include<algorithm>
+#include<queue>
+#include<vector>
+#include<conio.h>
+#include<utility>
+
+using namespace std;
+
+int pacman_r, pacman_c;
+int food_r, food_c;
+int r, c;
+
+class Node
+{
+	int x;
+	int y;
+
+	Node* parent;
+	int f, g, h;
+
+public:
+	Node(int x, int y) :x(x), y(y)
+	{
+		f = g = h = 0;
+		parent = NULL;
+	}
+
+	int getX(){ return x; }
+	int getY(){ return y; }
+
+	int getG() { return g; }       //if diagonal movement is allowed change the function to setG(int G,int i)
+	void setG(int G){ G += 10; g = G; } // if i is odd then G+=14 else G+=10;
+
+	void setH(int h){ this->h = h; }
+	int getH(){ return h; }
+
+	void setF(int f){ this->f = f; }
+	int getF(){ return f; }
+
+	void Heuristic_Estimate(Node* t);
+	void Compute();
+
+
+	//test
+
+	Node* getParent(){ return parent; }
+	void setParent(Node* parent){ this->parent = parent; }
+
+};
+
+vector<Node*>map;
+void Node::Heuristic_Estimate(Node *t)
+{
+	int d = abs(t->getX() - getX()) + abs(t->getY() - getY());
+	setH(d);
+}
+
+void Node::Compute()
+{
+	setF(getG() + getH());
+}
+
+void findPath(Node* s, Node *t, char m[7][20])
+{
+	vector<Node*>open_list;
+	vector<Node*>closed_list;
+	open_list.push_back(s);
+	push_heap(open_list.begin(), open_list.end(), [=](Node* n1, Node* n2)->bool{return n1->getF() > n2->getF(); });
+
+	while (!open_list.empty())
+	{
+		make_heap(open_list.begin(), open_list.end(), [=](Node* n1, Node* n2)->bool{return n1->getF() > n2->getF(); });
+
+		Node* v = open_list.front();
+		pop_heap(open_list.begin(), open_list.end(), [=](Node* n1, Node* n2)->bool{return n1->getF() > n2->getF(); });
+		open_list.pop_back();
+
+		map.push_back(v);
+		closed_list.push_back(v);
+
+		int X[] = { -1, 0, 0, 1 };
+		int Y[] = { 0, -1, 1, 0 };
+		if (v->getX() == t->getX() && v->getY() == t->getY())return;
+
+		for (int i = 0; i < 4; i++)
+		{
+			int dx = v->getX() + X[i];
+			int dy = v->getY() + Y[i];
+
+			Node* adj = new Node(dx, dy);
+
+			vector<Node*>::iterator itr1 = find_if(closed_list.begin(), closed_list.end(), [adj](Node* n)->bool{return adj->getX() == n->getX() && adj->getY() == n->getY(); });
+			if (itr1 != closed_list.end())continue;
+			if (m[adj->getX()][adj->getY()] == '%')continue;
+			vector<Node*>::iterator itr2 = find_if(open_list.begin(), open_list.end(), [adj](Node* n)->bool{return adj->getX() == n->getX() && adj->getY() == n->getY(); });
+			if (itr2 == open_list.end())//if not found
+			{
+				adj->setG(v->getG());
+				adj->Heuristic_Estimate(t);
+				adj->Compute();
+				adj->setParent(v);
+				open_list.push_back(adj);
+
+				push_heap(open_list.begin(), open_list.end(), [=](Node* n1, Node* n2)->bool{return n1->getF() > n2->getF(); });
+				make_heap(open_list.begin(), open_list.end(), [=](Node* n1, Node* n2)->bool{return n1->getF() > n2->getF(); });
+
+			}
+			else //if found
+			{
+				Node* t = *itr2;
+				if (v->getG() + 10 < t->getG())//10 is set only becuz moves are allowed horizontal or vertical
+				{                              //10 or 14 will be allowed only diagonal move is added extra
+					open_list.erase(itr2);    //solution:- in the for loop if i is odd diagonal else vert or horizontal
+					t->setG(v->getG());       //if i%2==0 choose n=10 else choose n=14
+					t->Heuristic_Estimate(t);
+					t->Compute();
+					t->setParent(v);
+					open_list.push_back(t);
+
+					push_heap(open_list.begin(), open_list.end(), [=](Node* n1, Node* n2)->bool{return n1->getF() > n2->getF(); });
+					make_heap(open_list.begin(), open_list.end(), [=](Node* n1, Node* n2)->bool{return n1->getF() > n2->getF(); });
+				}
+			}
+		}
+	}
+}
+
+int index = 0;
+void final_path(Node* t)
+{
+	Node* s = new Node(pacman_r, pacman_c);
+	cout << t->getX() << " " << t->getY() << endl;
+	if (t->getX() == s->getX() && t->getY() == s->getY())return;
+	final_path(t->getParent());
+	index++;
+}
+
+void Find(Node* t)
+{
+	vector<Node*>::iterator itr = find_if(map.begin(), map.end(), [t](Node* n)->bool{return t->getX() == n->getX() && t->getY() == n->getY(); });
+	final_path(*itr);
+}
+
+int main()
+{
+	pacman_r = 3, pacman_c = 9;
+	food_r = 5, food_c = 1;
+	r = 7, c = 20;
+	char m[7][20] =
+	{
+		{ '%', '%', ' %', '%', '%', '%', '%', '%', '%', '%', '%', '%', '%', '%', ' %', '%', '%', '%', '%', '%' },
+		{ '%', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '%', '-', '-', '-', '%' },
+		{ '%', '-', '%', '%', '-', '%', '%', '-', '%', '%', '-', '%', '%', '-', '%', '%', '-', '%', '-', '%' },
+		{ '%', '-', '-', '-', '-', '-', '-', '-', '-', 'P', '-', '-', '-', '-', '-', '-', '-', '%', '-', '%' },
+		{ '%', '%', '%', '%', '%', '%', '%', '%', '%', '%', '%', '%', '%', '%', '%', '%', '%', '%', '-', '%' },
+		{ '%', '.', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '%' },
+		{ '%', '%', '%', '%', '%', '%', '%', '%', '%', '%', '%', '%', '%', '%', '%', '%', '%', '%', '%', '%' }
+	};
+
+	Node* s = new Node(pacman_r, pacman_c);
+	Node *t = new Node(food_r, food_c);
+	findPath(s, t, m);
+	Find(t);
+	cout << "Number of nodes: " << endl;
+	cout << index << endl;
+
+
+	return 0;
+}
