@@ -1,0 +1,185 @@
+#include<iostream>
+#include<vector>
+#include<algorithm>
+#include<utility>
+#include<sstream>
+#include<fstream>
+
+using namespace std;
+
+
+class Board
+{
+	int** board;
+	int n;
+public:
+	Board(int** board,int n)
+	{
+		this->board = board;
+		this->n = n;
+	}
+
+	int getSize(){ return n*n; }
+	bool isSafe(int r,int c,int k);
+	void PrintBoard()
+	{
+		for (int i = 0; i < n*n; i++)
+		{
+			for (int j = 0; j < n*n; j++)
+			{
+				cout << board[i][j] << " ";
+			}
+			cout << endl;
+		}
+	}
+
+	void Place(int r,int c,int i);
+	void Unplace(int r,int c,int i);
+	bool Find_Zero(int &row,int &col);
+};
+
+bool Board::Find_Zero(int &row,int &col)
+{
+	for (int i = 0; i < n*n; i++)
+	{
+		for (int j = 0; j < n*n; j++)
+		{
+			if (board[i][j] == 0)
+			{
+				row = i;
+				col = j;
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+void Board::Place(int r,int c,int i)
+{
+	board[r][c] = i;
+}
+void Board::Unplace(int r, int c, int i)
+{
+	board[r][c] = 0;
+}
+
+bool Board::isSafe(int r,int c,int k)
+{
+	for (int i = 0; i < n*n; i++)
+	{
+		if (board[r][i] == k)return false;
+	}
+	for (int i = 0; i < n*n; i++)
+	{
+		if (board[i][c] == k)return false;
+	}
+	for (int i = (r-(r%3)); i < 3; i++)
+	{
+		for (int j = (c - (c % 3)); j < 3; j++)
+		{
+			if (board[i][j] == k)return false;
+		}
+	}
+	return true;
+}
+
+
+bool Solve(Board* b)        //backtracking algorithm
+{
+
+	int row, col;
+	if (!b->Find_Zero(row, col))return true;
+
+	for (int i = 1; i <= 9; i++)
+	{
+		if (b->isSafe(row, col, i))
+		{
+			b->Place(row, col, i);
+			if (Solve(b) == true)return true;
+
+			b->Unplace(row, col, i);
+		}
+	}
+
+	return false;
+}
+
+
+class Loader
+{
+	int r, c;
+	int** mat;
+	ifstream reader;
+	vector<int>v;
+
+public:
+	Loader()
+	{
+		r = c = 0;
+	}
+
+	void Load(string file);
+	int** getSudokuData();
+	int getRow(){ return r;}
+	int getCol(){ return c; }
+
+};
+
+int** Loader::getSudokuData()
+{
+	int index = 0;
+	mat = new int*[getRow()];
+	for (int j = 0; j < getRow(); j++)
+	{
+		mat[j] = new int[getCol()];
+
+	}
+
+	for (int i = 0; i < getRow(); i++)
+	{
+		for (int j = 0; j < getCol(); j++)
+		{
+			mat[i][j] = v[index];
+			index++;
+		}
+	}
+
+	return mat;
+}
+
+void Loader::Load(string str)
+{
+	string line;
+	string s;
+	if (reader.bad())
+	{
+		cout << "File Not Found" << endl;
+	}
+	else
+	{
+		reader.open(str, ios::in);
+		while (getline(reader,line))
+		{
+			stringstream ss(line);
+			c = 0;
+			while (getline(ss, s, ','))
+			{
+				v.push_back(stoi(s));
+				c++;
+			}
+			r++;
+		}
+	}
+}
+
+int main()
+{
+	Loader* l = new Loader();
+	l->Load("sudoku_2.txt");
+	int** m = l->getSudokuData();
+	Board* b = new Board(m, 3);
+
+	if (Solve(b))
+		b->PrintBoard();
+}
