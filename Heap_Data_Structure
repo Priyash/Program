@@ -1,0 +1,110 @@
+#include<iostream>
+#include<algorithm>
+#include<vector>
+
+
+using namespace std;
+
+struct Node
+{
+	int data;
+};
+
+
+class Heap
+{
+	int size;
+	Node* node;
+	int heap_size;
+
+public:
+	Heap(int size)
+	{
+		this->size = size;
+		node = new Node[size];
+		heap_size = 0;
+	}
+
+	int getLeftChild(int index){ return (2 * index + 1); }
+	int getRightChild(int index){ return(2 * index + 2); }
+	int getParent(int index){ return (index - 1) / 2; }
+	int getMinimun(){ return node[0].data; }
+	bool isEmpty(){ return heap_size == 0; }
+
+	void Shift_Up(int index);
+	void Insert(int data);
+	void Make_Heap();
+	void Print_Heap();
+};
+
+
+void Heap::Print_Heap()
+{
+	for (int i = 0; i < size; i++)
+	{
+		cout << node[i].data << endl;
+	}
+}
+
+void Heap::Shift_Up(int index)
+{
+	int l = getLeftChild(index);
+	int r = getRightChild(index);
+	int min = index;
+	if (l < heap_size && node[l].data < node[index].data)
+	{
+		min = l;
+	}
+
+	if (r < heap_size && node[r].data < node[min].data)
+	{
+		min = r;
+	}
+
+	if (min != index)
+	{
+		int temp = node[index].data;
+		node[index].data = node[min].data;
+		node[min].data = temp;
+		Shift_Up(min);
+	}
+}
+
+
+void Heap::Insert(int data)
+{
+	if (heap_size==size)
+	{
+		throw runtime_error("Heap is Full");
+	}
+	else
+	{
+		heap_size++;
+		node[heap_size - 1].data = data;
+		Shift_Up(heap_size - 1);
+	}
+}
+
+void Heap::Make_Heap()
+{
+	for (int i = (heap_size-1) / 2; i >= 0; i--)
+	{
+		Shift_Up(i);
+	}
+}
+
+
+int main()
+{
+
+	Heap* heap = new Heap(5);
+	heap->Insert(7);
+	heap->Insert(4);
+	heap->Insert(9);
+	heap->Insert(3);
+	heap->Insert(1);
+	heap->Make_Heap();
+	heap->Print_Heap();
+
+	return 0;
+}
