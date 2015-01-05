@@ -1,0 +1,232 @@
+#include<iostream>
+#include<algorithm>
+#include<vector>
+#include<string>
+#include<random>
+
+using namespace std;
+
+struct Node
+{
+	int priority;
+	int data;
+	Node* left;
+	Node* right;
+	Node* parent;
+	Node(int priority, int data, Node* left, Node* right,Node* parent)
+	{
+		this->priority = priority;
+		this->data = data;
+		this->left = left;
+		this->right = right;
+		this->parent = parent;
+	}
+
+};
+
+class Treap
+{
+	Node* root;
+   
+public:
+	Treap()
+	{
+		root = NULL;
+	}
+
+	Node* getRoot(){ return root; }
+	
+	void Insert(int data){ Insert(&root, data,NULL);}
+	void print(){ print(root); }
+	Node* search(int data){ return search(root, data); }
+	int height(){ return height(root); }
+	void remove(int data){ remove(&root, data); }
+private:
+	int getRand();
+	void leftRotate(Node** node);
+	void rigtRotate(Node** node);
+	void print(Node* n);
+	void Insert(Node** node, int data,Node* parent);
+	void remove(Node** n,int data);
+	Node* search(Node* n, int data);
+	int height(Node* n);
+
+};
+
+
+void Treap::remove(Node** n,int data)
+{
+	if (*n == NULL)return;
+	if (data < (*n)->data)
+	{
+		remove(&(*n)->left, data);
+	}
+	else if (data>(*n)->data)
+	{
+		remove(&(*n)->right, data);
+	}
+	else
+	{
+
+		if ((*n)->left == NULL && (*n)->right == NULL)
+		{
+			delete *n;
+			*n = NULL;
+		}
+		else if ((*n)->left == NULL)
+		{
+			Node* tmp = (*n);
+				(*n) = (*n)->right;
+			delete tmp;
+			
+		}
+		else if ((*n)->right == NULL)
+		{
+			Node* tmp = (*n);
+			(*n) = (*n)->left;
+			delete tmp;
+		
+		}
+		else
+		{
+			if ((*n)->left->priority > (*n)->right->priority)
+			{
+				rigtRotate(n);
+				remove(&(*n)->left, data);
+			}
+			else
+			{
+				leftRotate(n);
+				remove(&(*n)->right, data);
+			}
+		}
+
+	}
+}
+
+Node* Treap::search(Node* n,int data)
+{
+	if (n == NULL)
+	{
+		return NULL;
+	}
+
+	if (data == n->data)
+	{
+		return n;
+	}
+
+	else
+	{
+		if (data<n->data)
+		{
+			return search(n->left, data);
+		}
+		else
+		{
+			return search(n->right, data);
+		}
+	}
+}
+
+
+void Treap::print(Node* n)
+{
+	if (n == NULL)return;
+	else
+	{
+		print(n->left);
+		cout << n->data << "   " << n->priority << endl;
+		print(n->right);
+	}
+}
+
+int Treap::getRand()
+{
+	const int from = 1;
+	const int to = 100000000;
+	random_device rd;
+	std::mt19937 gen(rd());
+	uniform_int_distribution<int>dist(from, to);
+	
+	return dist(gen);
+}
+
+void Treap::leftRotate(Node** node)
+{
+	Node* temp = (*node)->right;
+	(*node)->right = temp->left;
+	temp->left = (*node);
+	(*node) = temp;
+}
+
+void Treap::rigtRotate(Node** node)
+{
+	Node* temp = (*node)->left;
+	(*node)->left = temp->right;
+	temp->right = (*node);
+	(*node) = temp;
+}
+
+int Treap::height(Node* n)
+{
+	if (n == NULL)return -1;
+	
+	int l = height(n->left);
+	int r = height(n->right);
+	return l > r ? 1 + l : 1 + r;
+}
+
+void Treap::Insert(Node** node, int data,Node* parent)
+{
+	Node* temp;
+	if (*node == NULL)
+	{
+		temp = new Node(getRand(), data, NULL, NULL,parent);
+		*node = temp;
+		return;
+	}
+	else
+	{
+		if ((*node)->data == data)return;
+
+		if (data < (*node)->data)
+		{
+			Insert(&(*node)->left, data,*node);
+			if ((*node)->left->priority < (*node)->priority)
+			{
+				rigtRotate(node);
+			}
+		}
+		else
+		{
+			Insert(&(*node)->right, data,*node);
+			if ((*node)->right->priority < (*node)->priority)
+			{
+				leftRotate(node);
+			}
+		}
+	}
+}
+
+
+
+int main()
+{
+	Treap* tp = new Treap();
+	for (int i = 1; i <= 100; i++)
+	{
+		tp->Insert(i);
+	}
+	
+	//tp->print();
+	tp->remove(53);
+	tp->print();
+
+	cout << tp->getRoot()->data << " " << tp->getRoot()->priority << endl;
+	return 0;
+
+
+}
+
+
