@@ -1,0 +1,164 @@
+#include<iostream>
+#include<algorithm>
+#include<vector>
+
+using namespace std;
+
+struct Node
+{
+	int data;
+	Node* left;
+	Node* right;
+	Node(int data, Node* left, Node* right)
+	{
+		this->data = data;
+		this->left = left;
+		this->right = right;
+	}
+};
+
+class  Tree
+{
+	Node* root;
+	void add(Node** n, int data);
+	void show(Node* n);
+	Node* Max(Node* n);
+	Node* Min(Node* n);
+	Node* Search(Node* n, int data);
+	int depth(Node* n);
+	Node* LCA(Node* n, int n1, int n2);
+public:
+	Tree(int data)
+	{
+		root = new Node(data, NULL, NULL);
+	}
+
+	void add(int data){ add(&root, data); }
+	void show(){ show(root); }
+	Node* Max(){ return Max(root); }
+	Node* Min(){ return Min(root); }
+	Node* Search(int data){ return Search(root, data); }
+	int depth(){ return depth(root); }
+	Node* LCA(int n1, int n2){ return LCA(root, n1, n2); }
+	
+};
+
+Node* Tree::LCA(Node* n, int n1, int n2)
+{
+	if (n == NULL)
+		return NULL;
+	if (n->data < n1&&n->data < n2)
+			LCA(n->right, n1, n2);
+	if (n->data>n1&&n->data>n2)
+			LCA(n->left, n1, n2);
+	
+	return n;
+}
+
+int Tree::depth(Node* n)
+{
+	int l=0, r=0;
+	if (n == NULL)return NULL;
+	else
+	{
+		l = depth(n->left);
+		r = depth(n->right);
+		return l > r ? l + 1 : r + 1;
+	}
+}
+
+Node* Tree::Search(Node* n, int data)
+{
+	if (n->data == data)return n;
+	else
+	{
+		if (data < n->data)
+			Search(n->left, data);
+		else
+			Search(n->right, data);
+	}
+}
+
+Node* Tree::Max(Node* n)
+{
+	if (n == NULL)return NULL;
+	else
+	{
+		while (n->right != NULL)
+		{
+			return Max(n->right);
+		}
+	}
+}
+Node* Tree::Min(Node* n)
+{
+	if (n == NULL)return NULL;
+	else
+	{
+		while (n->left != NULL)
+		{
+			return Min(n->left);
+		}
+	}
+}
+void Tree::add(Node** n, int data)
+{
+	if (*n == NULL)
+	{
+		Node* temp = new Node(data, NULL, NULL);
+		*n = temp;
+		return;
+	}
+	else
+	{
+		if (data>(*n)->data)
+		{
+			add((&(*n)->right), data);
+		}
+		else
+			add(&(*n)->left, data);
+	}
+}
+
+void Tree::show(Node* n)//inorder_traversal
+{
+	if (n == NULL)return;
+	show(n->left);
+	cout << n->data << endl;
+	show(n->right);
+}
+
+Node* ArrayToBst(int*a, int start, int end)
+{
+	if (start > end)return NULL;
+	int mid = (start + end) / 2;
+	Node* root = new Node(a[mid], NULL, NULL);
+	root->left = ArrayToBst(a, start, mid - 1);
+	root->right = ArrayToBst(a, mid + 1, end);
+
+	return root;
+}
+
+
+void Pre_Order(Node* r)
+{
+	if (r == NULL)return;
+	else
+	{
+		cout << r->data << endl;
+		Pre_Order(r->left);
+		Pre_Order(r->right);
+	}
+}
+
+int main()
+{
+	int *a = new int[5];
+	for (int i = 0; i < 5; i++)
+	{
+		a[i] = i + 1;
+	}
+
+	Pre_Order(ArrayToBst(a, 0, 4));
+	return 0;
+}
