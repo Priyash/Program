@@ -1,0 +1,175 @@
+#include<iostream>
+#include<vector>
+#include<algorithm>
+#include<string>
+#include<sstream>
+
+using namespace std;
+
+class Node
+{
+	char content;
+	bool marker;
+	vector<Node*>children;
+	Node* parent;
+public:
+	Node(char content=' ', bool marker=false,Node* parent=NULL)
+	{
+		this->content = content;
+		this->marker = marker;
+		this->parent = parent;
+		for (int i = 0; i < children.size(); i++)
+		{
+			children.push_back(NULL);
+		}
+	}
+
+	bool getMarker(){ return marker; }
+	char getContent(){ return content; }
+	void addChild(Node*);
+	vector<Node*>getChildren(){ return children; }
+	Node* findChild(Node*);
+
+	Node* getParent(){ return parent; }
+};
+
+void Node::addChild(Node* n)
+{
+	children.push_back(n);
+}
+
+Node* Node::findChild(Node* n)
+{
+	auto itr = find_if(children.begin(), children.end(), [n](Node* a)->bool{return n->getContent()== a->getContent()&&n->getMarker()==a->getMarker();});
+	if (itr != children.end())
+	{
+		return *itr;
+	}
+
+	return NULL;
+}
+
+
+
+class Trie
+{
+	Node* root;
+public:
+	Trie()
+	{
+		root = new Node();
+	}
+	void addWord(string s);
+	bool Contain(string s);
+	void Autocomplete(string prefix){ Autocomplete(root, prefix); }
+
+private:
+	void Autocomplete(Node* n, string prefix);
+};
+
+
+
+
+void Trie::addWord(string s)
+{
+	Node* cur = root;
+	bool marker = false;
+	for (int i = 0; i < s.length(); i++)
+	{
+		if (i == s.length() - 1)
+		{
+			marker = true;
+		}
+
+		Node* child = cur->findChild(new Node(s[i], marker,cur));
+		if (child != NULL)
+		{
+			cur = child;
+		}
+		else
+		{
+			Node* temp = new Node(s[i], marker,cur);
+			cur->addChild(temp);
+			cur = temp;
+		}
+	}
+}
+
+
+bool Trie::Contain(string s)
+{
+	Node* cur = root;
+	bool marker = false;
+	while (cur != NULL)
+	{
+		for (int i = 0; i < s.length(); i++)
+		{
+			if (i == s.length() - 1)
+			{
+				marker = true;
+			}
+			Node* child = cur->findChild(new Node(s[i], marker,cur));
+			if (child != NULL)
+			{
+				cur = child;
+				return true;
+			}
+			else
+				return false;
+		}
+	}
+
+	return false;
+}
+
+
+
+void Trie::Autocomplete(Node* n , string prefix)
+{
+	
+	Node* cur = n;
+	for (int i = 0; i < prefix.length(); i++)
+	{
+		Node* temp = cur->findChild(new Node(prefix[i], false,cur));
+		if (temp == NULL)
+		{
+			cout << prefix << endl;
+			return;
+		}
+		cur = temp;
+	}
+
+	
+	vector<Node*>child = cur->getChildren();
+	for (auto i : child)
+	{
+		string s;
+		s = prefix + i->getContent();
+		if (i->getMarker())
+		{
+			cout << s << endl;
+			continue;
+		}
+		
+		Autocomplete(n, s);
+		
+	}
+}
+
+int main()
+{
+	Trie* trie = new Trie();
+	trie->addWord("have");
+	trie->addWord("hate");
+	trie->addWord("hamburger");
+	trie->addWord("halo");
+	trie->addWord("head");
+	trie->addWord("had");
+	trie->addWord("happy");
+	trie->addWord("hear");
+	
+	//trie->Autocomplete("h");
+	trie->Autocomplete("ha");
+
+	return 0;
+}
