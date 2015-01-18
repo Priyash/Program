@@ -1,0 +1,97 @@
+#include<iostream>
+#include<vector>
+#include<algorithm>
+
+using namespace std;
+
+int LIS(int *a, int n)
+{
+	int* l = new int[n];
+	for (int i = 0; i < n; i++)
+	{
+		l[i] = 1;
+	}
+
+	for (int i = 1; i < n; i++)
+	{
+		for (int j = 0; j < i; j++)
+		{
+			if (a[i]>a[j] && l[i]<l[j] + 1)
+			{
+				l[i] = l[j] + 1;
+			}
+		}
+	}
+	int max = 0;
+	for (int i = 0; i < n; i++)
+	{
+		if (max < l[i])
+		{
+			max = l[i];
+		}
+	}
+
+	return max;
+}
+
+
+
+int Binary_Search(int *a, int l, int r, int key)
+{
+	int mid;
+	while (r-1>l)
+	{
+		mid = (l + r) / 2;
+		(a[mid] >= key ? r : l) = mid;
+	}
+
+	return r;
+}
+
+
+int LIS2(int *a, int n)
+{
+	int *l = new int[n];
+	int len = 1;
+	for (int i = 0; i < n; i++)
+	{
+		l[i] = 0;
+	}
+
+	l[0] = a[0];
+ 
+	for (int i = 1; i < n; i++)
+	{
+		if (a[i] < l[0])
+		{
+			l[0] = a[i];
+		}
+		else if (a[i]>l[len - 1])
+		{
+			l[len++] = a[i];
+		}
+		else
+		{
+			l[Binary_Search(l, -1, len - 1, a[i])] = a[i];
+		}
+	}
+
+	return len;
+}
+
+
+int main()
+{
+	int n;
+	cin >> n;
+	int *a = new int[n];
+	for (int i = 0; i < n; i++)
+	{
+		cin >> a[i];
+	}
+
+	cout << LIS2(a, n) << endl;
+
+
+	return 0;
+}
