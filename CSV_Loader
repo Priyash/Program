@@ -1,0 +1,108 @@
+class CSVLoader
+{
+	ifstream reader;
+	long long counter = 0;
+	long long c=0;
+	string file;
+	vector<string>v;
+	vector<string>label;
+	string** mat;
+public:
+	CSVLoader(string file)
+	{
+		ifstream read;
+		string l;
+		this->file = file;
+	}
+
+	void Load();
+	int Find_Column_Label(string str);
+
+	long long getRow(){ return counter; }
+	vector<string>getData(){ return v; }
+	long long getCol(){ return c; }
+
+	string** loadData();
+};
+
+void CSVLoader::Load()
+{
+	string line;
+	
+	if (reader.bad())
+	{
+		cout << "Couldn't open file" << endl;
+	}
+	else
+	{
+		reader.open(file, ios::in);
+		string line;
+		while (getline(reader, line))
+		{
+			stringstream ss(line);
+			string str;
+			c = 0;
+			while (getline(ss, str, ','))
+			{
+				v.push_back(str);
+				c++;
+			}
+			
+			counter++;
+		}
+	}
+}
+
+int CSVLoader::Find_Column_Label(string str)
+{
+	auto itr = find_if(v.begin(), v.end(), [=](string s){return s == str; });
+	int dist = distance(v.begin(),itr);
+	return dist;
+}
+
+
+string** CSVLoader::loadData()
+{
+	mat = new string*[getRow()];
+	for (int i = 0; i < getRow(); i++)
+	{
+		mat[i] = new string[getCol()];
+	}
+
+
+	int index = 0;
+
+
+	for (int i = 0; i < getRow(); i++)
+	{
+		for (int j = 0; j < getCol(); j++)
+		{
+			mat[i][j] = v[index];
+			index++;
+		}
+	}
+
+	return mat;
+}
+
+
+
+
+usage :
+
+
+create an instance 
+CSVLoader* file=new CSVLoader("file_name");
+//to get a row no
+int row=file->getRow();
+//to get col no
+int col=file->getCol();
+//to find a colum position use
+int pos=file->Find_Column_Label("your_column_name");
+//to load the data into application and show it to a tabular format use
+string **mat=file->loadData();
+//to show the data use this format
+for (int i = 0; i < file->getRow()-1; i++)
+{
+   cout << mat[i + 1][d] << endl;//i+1 cause for i=0 all the name of the column data.
+}
