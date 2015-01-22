@@ -1,0 +1,38 @@
+#include<iostream>
+#include<vector>
+#include<algorithm>
+#include<string>
+#include<bitset>
+#include<map>
+using namespace std;
+
+
+int main()
+{
+	int n = 0, m = 0;
+	vector<bitset<1000>>v;
+	map<int, int>mp;
+	cin >> n >> m;
+	for (int i = 0; i < n; i++)
+	{
+		string s = "";
+		cin >> s;
+		bitset<1000>b(s);
+		v.push_back(b);
+	}
+
+	for (int i = 0; i < n; i++)
+	{
+		for (int j = i + 1; j < n; j++)
+		{
+			bitset<1000>bt = v[i] | v[j];
+			mp[bt.count()]++;
+		}
+	}
+
+	auto itr = max_element(mp.begin(), mp.end());
+	cout << itr->first << endl << itr->second << endl;
+	
+
+	return 0;
+}
