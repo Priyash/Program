@@ -1,3 +1,4 @@
+
 /*
 Author : Priyash 
 Language used : C++ 11
@@ -39,11 +40,11 @@ public:
 void Element::ParseElement(string line)
 {
 	char *ch = _strdup(line.c_str());
-	char* pch = strtok(ch, "<> ");
+	char* pch = strtok(ch, "<>/ ");
 	while (pch != NULL)
 	{
 		out.push_back(pch);
-		pch = strtok(NULL, "<> ");
+		pch = strtok(NULL, "<>/ ");
 		break;
 	}
 	elem = out[0];
@@ -103,38 +104,75 @@ void Attribute::ParseAttribute(string str)
 	size_t l1 = str.find_first_of("<");
 	size_t l2 = str.find_first_of(">");
 	string res = str.substr(l1 + 1, l2 - l1 - 1);
-	vector<string>out;
-	char *ch = _strdup(res.c_str());
-	char* pch = strtok(ch, "<> ");
-	while (pch != NULL)
+
+	if (res.find_first_of(" ") != string::npos)
 	{
-		out.push_back(pch);
-		pch = strtok(NULL, "<> ");
-	}
-	if (out.size() == 1)//it means only element is there no attribute
-	{
-		return;
+		res = res.substr(res.find_first_of(" ") + 1);
+		vector<int>inverted_comma;
+		vector<int>odd_inverted_comma;
+		vector<int>space;
+		vector<int>equal;
+		for (int i = 0; i < res.length(); ++i)
+		{
+			if (res[i] == '\"')
+			{
+				inverted_comma.push_back(i);
+			}
+			else if (res[i] == '=')
+			{
+				equal.push_back(i);
+			}
+		}
+
+		for (int i = 0; i < inverted_comma.size(); ++i)
+		{
+			if (i % 2 != 0)
+			{
+				odd_inverted_comma.push_back(inverted_comma[i]);
+			}
+		}
+
+
+		//----------------------------------------------------------------------------------//
+		//attribute_name
+		vector<string>el;
+		vector<string>val;
+		if (equal.size() == 1)
+		{
+			el.push_back(res.substr(0, equal[0]));
+			val.push_back(res.substr(inverted_comma[0] + 1, inverted_comma[1] - inverted_comma[0] - 1));
+		}
+		else
+		{
+			el.push_back(res.substr(0, equal[0]));
+			for (int i = 0; i < equal.size() - 1; ++i)
+			{
+				el.push_back(res.substr(odd_inverted_comma[i] + 2, equal[i + 1] - odd_inverted_comma[i] - 2));
+			}
+
+			//attribute_value
+
+			for (int i = 0; i < inverted_comma.size(); i = i + 2)
+			{
+				val.push_back(res.substr(inverted_comma[i] + 1, inverted_comma[i + 1] - inverted_comma[i] - 1));
+				if (i + 1 == inverted_comma.size() - 1)break;
+			}
+		}
+
+
+		for (int i = 0; i < el.size(); ++i)
+		{
+			hm.insert(pair<string, string>(el[i], val[i]));
+		}
 	}
 	else
 	{
-		out.erase(remove(out.begin(), out.end(), out[0]));// we parsed the data between < and > but we need to remove the 1st 
-		for (unsigned int i = 0; i < out.size(); i++)              //element in a vector cause its element not attribute rest is like in the form
-		{                                                //attribute_name=value
-			size_t f1 = out[i].find("=");
-			string id = out[i].substr(0, f1);
-			string value = out[i].substr(f1 + 1);
-
-			size_t m1 = value.find_first_of("\"");
-			size_t m2 = value.find_last_of("\"");
-
-			string final_value = value.substr(m1 + 1,m2-m1-1);
-		
-
-			hm.insert(pair<string, string>(id, final_value));
-		}
-		out.clear();
+		return;
 	}
 }
+
+
+
 
 class Text
 {
@@ -164,14 +202,15 @@ void Text::extractText()
 	size_t f1 = line.find_first_of(">");//we want to read the data between <element>some text</element>or<element>some text....
 	//if there is some element such as <element> then we have to check the text data is there or not we do 
 	//this by checking the location of f1 and 1 if there is no text left then the string of loc of f1+1 will empty
-	if (line.substr(f1+1) == "")return;                                                      
+
 	if (f1 == string::npos)
 	{
 		return;
 	}
 	//find the </element>'s / symbol 
 	//if found
-	size_t f2 = line.find_last_of("/");
+	size_t f2 = line.find("/");
+	
 	if (f2 != string::npos)
 	{
 		res = line.substr(f1 + 1, f2 - f1 - 2);
@@ -186,19 +225,19 @@ void Text::extractText()
 		string str = "";
 		for (unsigned int i = index; i < out.size(); i++)
 		{
-			str = out[i];
 			finalIndex++;
+			str = out[i];
+			if (str.find("<") != string::npos || str.find(">") != string::npos || str.find("/") != string::npos)return;
 			if (str.find("</") != string::npos)
 			{
-				
 				res.append(str.substr(0, str.find("</")));
 				break;
 			}
 			res.append(str);
+			t = res;
 		}
 
 	}
-	t = res;
 }
 
 //each element here is considered as a Node which has element name,attribute name and values,text
@@ -319,13 +358,15 @@ class XML
 	string encodeType;
 	string versionType;
 	Node* root;
+	vector<Node*>out;
 private:
 	void LoadData();
 	void findRoot();
 	void getXMLHeaderInfo();
 	void Build(Node*,int i);
 	Node* Find(Node*, string elemName, string attr_name, string value);
-	vector<Node*> FindElement(Node*, string elemName);
+	void FindElement(Node*, string elemName);
+	
 	
 public:
 	XML(string fileName)
@@ -357,8 +398,10 @@ public:
 	}
 	Node* getRoot(){ return root; }
 	void Build(){ Build(root,2); }
+	void Sub_Build(Node* n, string endTag,int i);
 	Node* Find(string elemName, string attr_name, string value){ return Find(root, elemName, attr_name, value); }
-	vector<Node*> FindElement(string elemName){return FindElement(root,elemName); }
+	void FindElement(string elemName){ FindElement(root,elemName); }
+	vector<Node*>getElementNode(){ return out; };
 	//debugging purpose whether to see data is properly fetched or not.
 	/*void printALL()
 	{
@@ -370,10 +413,9 @@ public:
 };
 
 //fetch the element tag and corresponding info and grouped into a container.
-vector<Node*>XML::FindElement(Node*n,string elemName)
+void XML::FindElement(Node*n,string elemName)
 {
 	vector<Node*>children = n->getChildren();
-	vector<Node*>out;
 	for (auto i : children)
 	{
 		if (i->getNodeElement()->getElem() == elemName)
@@ -382,18 +424,10 @@ vector<Node*>XML::FindElement(Node*n,string elemName)
 		}
 		else
 		{
-			vector<Node*>child = i->getChildren();
-			for (auto j : child)
-			{
-				if (j->getNodeElement()->getElem() == elemName)
-				{
-					out.push_back(j);
-				}
-			}
+			FindElement(i, elemName);
 		}
 	}
-
-	return out;
+	return;
 }
 
 //suppose there is a multiple identical tag , to identify a specific tag among them we use this module
@@ -435,35 +469,62 @@ void XML::Build(Node* n,int i)
 {
 	if (i == data.size() - 1)return;
 	string line = data[i];
-	Node* temp = new Node(new Element(line), new Attribute(line), NULL, n);
-	string endTg = temp->getNodeElement()->getEndTag();
-	if (line.substr(line.find_last_of("</")) == endTg)
+	line.erase(0, line.find_first_not_of(' '));
+	if (line.find("/") == string::npos)
 	{
+		Node* temp = new Node(new Element(line), new Attribute(line), NULL, n);
+		string endTg = temp->getNodeElement()->getEndTag();
+		i++;
 		n->addChild(temp);
-		Build(n, ++i);
+		Sub_Build(temp, endTg, i);
 	}
+	else
+	{
+		Build(n->getParent(),++i);
+	}
+}
 
-	i++;
+//core_mechanism
+void XML::Sub_Build(Node* temp,string endTag, int i)
+{
 	int pos = 0;
-	for (unsigned int j=i; j < data.size();)
+	bool hasChild = false;
+	for (unsigned int j = i; j < data.size()-1;)
 	{
 		string ln = data[j];
-		ln.erase(0, ln.find_first_not_of(' '));             // for changing "   <element>" to "<element>"
-			if (endTg == ln)                               //for detecting the end tag of the sub root-tag
+		string _next = data[j + 1];
+		ln.erase(0, ln.find_first_not_of(' '));
+		_next.erase(0, _next.find_first_not_of(' '));
+		if (ln == endTag)
+		{
+			Build(temp->getParent(), ++j);
+			break;
+		}
+		if (ln.find_last_of("/") == string::npos)
+		{
+			if (_next.find_first_of("<") != string::npos)
 			{
-				n->addChild(temp);
-				Build(n, ++j);                            //using recursion to go to the root tag
-				break;
+				hasChild = true;
 			}
-
+		}
 		Text* txt = new Text(j, data);
-		pos = txt->getFinalIndex() + 1;                    //after reading the text which is not in the same line it will return finalIndex+1 from where 
-		                                                    //will start fetching data
+		pos = txt->getFinalIndex() + 1;
 		j = j + pos;
 		Node* node = new Node(new Element(ln), new Attribute(ln), txt, temp);
+		if (node->getNodeElement()->getEndTag() == ln)
+		{
+			temp = temp->getParent();
+			hasChild = false;
+			continue;
+		}
 		temp->addChild(node);
+		if (hasChild)
+		{
+			Sub_Build(node, node->getParent()->getNodeElement()->getEndTag(), --j);
+			break;
+		}
+		
 	}
-
 }
 
 //information about xml version and encoding type
@@ -501,7 +562,7 @@ void XML::getXMLHeaderInfo()
 //finds the root tag
 void XML::findRoot()
 {
-	root = new Node(new Element(data[1]));
+	root = new Node(new Element(data[1]),new Attribute(data[1]));
 }  
 //loading the entire data into memory from memory we parse the data and tags
 void XML::LoadData()
@@ -516,13 +577,23 @@ void XML::LoadData()
 
 int main()
 {
-	XML* xml = new XML(fileName);
+//File used :- v2.xml
+	XML* xml = new XML("F:\\v2.xml");
 	xml->Build();
-	vector<Node*>v = xml->FindElement(elementName);
+	xml->FindElement("Course");//find a specific element
+	vector<Node*>v = xml->getElementNode();//get all the same elements in a container
 	for (auto i : v)
 	{
-		cout << i->getNodeAttribute()->getAttributeValue(attributeName)<< endl;
+	//for each node specific to the element queried above we can further query the properties of each node
+	//or its children or parent
+		cout <<"Course_Name: "<< i->getNodeAttribute()->getAttributeValue("name") << endl;
+		cout <<"Degree : "<< i->getNodeAttribute()->getAttributeValue("degree") << endl;
+		cout <<"Spec : "<< i->getNodeAttribute()->getAttributeValue("Specialization") << endl;
+		cout<<"Collaborator : " << i->getNodeAttribute()->getAttributeValue("Collaborator") << endl;
+		cout<<"duration : " << i->getNodeAttribute()->getAttributeValue("duration")<< endl;
+		cout << endl << endl;
 	}
+
 	return 0;
 
 }
