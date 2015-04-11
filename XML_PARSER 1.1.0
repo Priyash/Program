@@ -190,7 +190,7 @@ public:
 		extractText();
 	}
 	int getFinalIndex(){ return finalIndex; }
-	string getText(){ return t; }
+	string getText(){ if (t == ""){ return "No Text"; } return t; }
 };
 
 void Text::extractText()
@@ -227,16 +227,20 @@ void Text::extractText()
 		{
 			finalIndex++;
 			str = out[i];
-			if (str.find("<") != string::npos || str.find(">") != string::npos || str.find("/") != string::npos)return;
+			str = str.erase(0, str.find_first_not_of(' '));
+			if ((str.find("<") != string::npos || str.find(">") != string::npos || str.find("/") != string::npos) && str[0] == '<')
+			{
+				return;
+			}
 			if (str.find("</") != string::npos)
 			{
+				str = str.substr(0, str.find("</"));
 				res.append(str.substr(0, str.find("</")));
+				res.append(str);
+				t = res;
 				break;
-			}
-			res.append(str);
-			t = res;
+			}	
 		}
-
 	}
 }
 
@@ -502,7 +506,7 @@ void XML::Sub_Build(Node* temp,string endTag, int i)
 		}
 		if (ln.find_last_of("/") == string::npos)
 		{
-			if (_next.find_first_of("<") != string::npos)
+			if (_next.find_first_of("<") != string::npos&&_next[0]=='<')
 			{
 				hasChild = true;
 			}
@@ -549,7 +553,6 @@ void XML::getXMLHeaderInfo()
 		versionType = line.substr(occurence[0] + 1, occurence[1] - occurence[0] - 1);
 	}
 
-
 	if (occurence.size()==2)
 	{
 		encodeType = "";
@@ -577,21 +580,14 @@ void XML::LoadData()
 
 int main()
 {
-//File used :- v2.xml
-	XML* xml = new XML("F:\\v2.xml");
+	XML* xml = new XML("F:\\xml\\book.xml");
 	xml->Build();
-	xml->FindElement("Course");//find a specific element
-	vector<Node*>v = xml->getElementNode();//get all the same elements in a container
+	xml->FindElement("genre");
+	vector<Node*>v = xml->getElementNode();
 	for (auto i : v)
 	{
-	//for each node specific to the element queried above we can further query the properties of each node
-	//or its children or parent
-		cout <<"Course_Name: "<< i->getNodeAttribute()->getAttributeValue("name") << endl;
-		cout <<"Degree : "<< i->getNodeAttribute()->getAttributeValue("degree") << endl;
-		cout <<"Spec : "<< i->getNodeAttribute()->getAttributeValue("Specialization") << endl;
-		cout<<"Collaborator : " << i->getNodeAttribute()->getAttributeValue("Collaborator") << endl;
-		cout<<"duration : " << i->getNodeAttribute()->getAttributeValue("duration")<< endl;
-		cout << endl << endl;
+		cout<<i->getNodeText()->getText()<< endl;
+		//cout << i->getNodeAttribute()->getAttributeValue("id") << endl;
 	}
 
 	return 0;
