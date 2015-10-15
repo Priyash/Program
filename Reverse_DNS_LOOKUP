@@ -1,0 +1,144 @@
+#include<iostream>
+#include<algorithm>
+#include<vector>
+
+#define MAX 11
+using namespace std;
+
+//IMPLEMENTATION OF THE REVERSE DNS LOOKUP USING TRIE DATA STRUCTURE
+//0-9 IS FOR IP ADDRESS AND 10 IS FOR DOT(.)
+//EACH NODE CONTAINS URL AND THE CHILDREN NODE AND A LEAF NODE CHECKER
+
+struct Node
+{
+	bool isLeaf = false;
+	char* url;
+	Node* children[MAX];
+	Node()
+	{
+		for (int i = 0; i < MAX; i++)
+		{
+			children[i] = NULL;
+		}
+	}
+};
+
+
+//CLASS OF REVERSE DNS LOOK UP USING TRIE DATA STRUCTURE
+class Trie
+{
+	Node* root;
+public :
+	Trie()
+	{
+		root = new Node();
+	}
+	~Trie()
+	{
+		root = nullptr;
+	}
+
+	void Insert(char*ipAdd, char* url);
+	char* DNS_LOOK_UP(char* ipAdd);
+	
+private:
+	char* DNS_LOOK(char* ipAdd);
+	Node* createNode();
+	int getIndex(char c){ return c == '.' ? 10 : c - '0'; }
+};
+
+
+//THIS MODULE WILL ALLOCATE NODE IN THE MEMORY 
+Node* Trie::createNode()
+{
+	Node* temp = new Node;
+	temp->isLeaf = false;
+	temp->url = NULL;
+	for (int i = 0; i < MAX; i++)
+	{
+		temp->children[i] = NULL;
+	}
+
+	return temp;
+}
+
+//THIS MODULE WILL INSERT THE IP ADDRESS AND AT THE LEAF NODE IT WILL STORE THE CORRESPONDING WEB ADDRESS OF THE IP ADDRESS
+void Trie::Insert(char* ipAdd,char* url)
+{
+	Node* temp = root;
+	int len = strlen(ipAdd);
+	
+	for (int i = 0; i < len; i++)
+	{
+		int index = getIndex(ipAdd[i]);
+	    
+		if (!temp->children[index])
+		{
+			temp->children[index] = createNode();
+		}
+
+		temp = temp->children[index];
+	}
+
+	temp->isLeaf = true;
+	temp->url = url;
+}
+
+//ENCAPSULATING THE LOOKUP FUNCTION 
+char* Trie::DNS_LOOK_UP(char* ipAdd)
+{
+	char* c = DNS_LOOK(ipAdd);
+	if (c == NULL)
+	{
+		cout << "DNS_LOOK_UP COULDNOT BE RESOLVED" << endl;
+		return "";
+	}
+
+	return move(c);
+}
+
+
+//THIS MODULE WILL FETCH THE WEB ADDRESS FROM THE GIVEN IP ADDRESS(HENCE THE LOOKUP)
+char* Trie::DNS_LOOK(char* ipAdd)
+{
+	Node* temp = root;
+	int len = strlen(ipAdd);
+	for (int i = 0; i < len; i++)
+	{
+		int index = getIndex(ipAdd[i]);
+		if (!temp->children[index])
+		{
+			return NULL;
+		}
+
+		temp = temp->children[index];
+	}
+
+	//TO GET THE WEB ADDRESS FROM THE GIVEN IP ADDRESS THE NODE HAVE TO A LEAF NODE AND OFC HAS TO BE NOT NULL
+	//BECAUSE I AM STORING THE URL OF THE WEB BASED ON THE IP ADDRESS TO THE LAST NODE.
+	if (temp != NULL&&temp->isLeaf)return temp->url;
+	
+	return NULL;
+}
+
+
+
+int main()
+{
+	
+	Trie* trie = new Trie();
+	trie->Insert("107.108.11.123","www.samsung.com");
+	trie->Insert("107.109.123.255","www.samsung.net");
+    trie->Insert("74.125.200.106","www.google.in");
+	trie->Insert("74.126.201.108", "www.cnn.com");
+
+
+	cout << trie->DNS_LOOK_UP("74.126.201.108") << endl;
+	cout << trie->DNS_LOOK_UP("107.109.123.255") << endl;
+
+
+
+	return 0;
+}
+
+
