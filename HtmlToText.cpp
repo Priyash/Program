@@ -32,7 +32,7 @@ void findText(string s)
 void dumpData()
 {
 	ofstream writer;
-	string _path = "C:\\Users\\PRIYASH_11\\Downloads\\HTML\\";
+	string _path = "\\HTML\\";
 	string file = "out.txt";
 	string path = _path + file;
 	writer.open(path.c_str(), ios::out);
@@ -45,8 +45,8 @@ void dumpData()
 void loadFile()
 {
 	ifstream reader;
-	string _path = "C:\\Users\\PRIYASH_11\\Downloads\\HTML\\";
-	string file = "Manga.html";
+	string _path = "\\HTML\\";
+	string file = "page.html";
 	string path = _path + file;
 	reader.open(path.c_str(), ios::in);
 	string line = "";
