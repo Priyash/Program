@@ -11,8 +11,8 @@ using namespace std;
 class CSVLoader
 {
 	ifstream reader;
-	long long counter = 0;
-	long long c = 0;
+	long long row = 0;
+	long long col = 0;
 	string file;
 	vector<string>v;
 	vector<string>label;
@@ -36,9 +36,9 @@ public:
 	}
 	void Load();
 	int Find_Column_Label(string str);
-	long long getRow(){ return counter; }
+	long long getRow(){ return row; }
 	//vector<string>getData(){ return v; }
-	long long getCol(){ return c; }
+	long long getCol(){ return col; }
 	string** loadData();
 };
 
@@ -58,14 +58,14 @@ void CSVLoader::Load()
 		{
 			stringstream ss(line);
 			string str;
-			c = 0;
+			col = 0;
 			while (getline(ss, str, ','))
 			{
 				v.push_back(str);
-				c++;
+				col++;
 			}
 
-			counter++;
+			row++;
 		}
 		line.clear();
 		reader.close();
